@@ -5,35 +5,11 @@ import (
 	"encoding/xml"
 	"fmt"
 	"os"
-)
+	"strconv"
+	"strings"
 
-type XMLProp struct {
-	XMLName          xml.Name `xml:"prop"`
-	Text             string   `xml:",chardata"`
-	OldID            string   `xml:"old_id"`
-	Name             string   `xml:"name"`
-	Active           string   `xml:"active"`
-	Sort             string   `xml:"sort"`
-	Code             string   `xml:"code"`
-	DefaultValue     string   `xml:"default_value"`
-	PropertyType     string   `xml:"property_type"`
-	RowCount         string   `xml:"row_count"`
-	ColCount         string   `xml:"col_count"`
-	ListType         string   `xml:"list_type"`
-	Multiple         string   `xml:"multiple"`
-	XMLID            string   `xml:"xml_id"`
-	FileType         string   `xml:"file_type"`
-	MultipleCnt      string   `xml:"multiple_cnt"`
-	LinkIblockID     string   `xml:"link_iblock_id"`
-	WithDescription  string   `xml:"with_description"`
-	Searchable       string   `xml:"searchable"`
-	Filtrable        string   `xml:"filtrable"`
-	IsRequired       string   `xml:"is_required"`
-	Version          string   `xml:"version"`
-	UserType         string   `xml:"user_type"`
-	UserTypeSettings string   `xml:"user_type_settings"`
-	Hint             string   `xml:"hint"`
-}
+	"github.com/mozillazg/go-unidecode"
+)
 
 func main() {
 	op := "main()"
@@ -48,27 +24,86 @@ func main() {
 	}
 	defer csvFile.Close()
 
-	// create new reader
-	reader := csv.NewReader(csvFile)
-	reader.Comma = rune(';')
+	csvProps, err := getCsvArr(csvFile)
+	if err != nil {
+		fmt.Printf("%s: %s: csv records read error", op, err)
+	}
 
-	records := getCsvArr(reader)
+	AsdIblockProps := new(AsdIblockProps)
+	id := 88
+	xmlId := 35
 
-	for _, record := range records {
-		for _, r := range record {
-			fmt.Printf("record = %s", r)
+	for _, prop := range csvProps[0] {
+		id = id + 1
+		strID := strconv.Itoa(id)
+		xmlId = xmlId + 1
+		strXmlId := strconv.Itoa(xmlId)
+		code := translit(prop)
+
+		Prop := newXMLProp(strID, strXmlId, code, prop)
+		AsdIblockProps.Props.Prop = append(AsdIblockProps.Props.Prop, Prop)
+
+		output, err := xml.MarshalIndent(AsdIblockProps, "", "\t")
+		if err != nil {
+			fmt.Printf("%s: %s: MarshalIndent error", op, err)
+		}
+
+		XMLPath := "result.xml"
+		err = os.WriteFile(XMLPath, output, 0755)
+		if err != nil {
+			fmt.Printf("%s: %s: WriteFile error", op, err)
 		}
 	}
 }
 
 // Get all records from csv file
-func getCsvArr(reader *csv.Reader) ([][]string) {
-	op := "main.getCsvArr()"
+func getCsvArr(file *os.File) ([][]string, error) {
+	// create new reader
+	reader := csv.NewReader(file)
+	reader.Comma = rune(';')
 	records, err := reader.ReadAll()
 	if err != nil {
-		fmt.Printf("%s: %s: csv records read error", op, err)
-		return nil
+		return nil, err
 	}
 
-	return records
+	return records, nil
+}
+
+func newXMLProp(id, xmlId, code, name string) Prop {
+	Prop := Prop{
+		OldID:            id,
+		Name:             CDATA{name},
+		Active:           "Y",
+		Sort:             "100",
+		Code:             code,
+		DefaultValue:     "",
+		PropertyType:     "S",
+		RowCount:         "1",
+		ColCount:         "30",
+		ListType:         "L",
+		Multiple:         "N",
+		XMLID:            CDATA{xmlId},
+		FileType:         "",
+		MultipleCnt:      "5",
+		LinkIblockID:     "0",
+		WithDescription:  "N",
+		Searchable:       "N",
+		Filtrable:        "N",
+		IsRequired:       "N",
+		Version:          "1",
+		UserType:         "",
+		UserTypeSettings: CDATA{"a:0:{}"},
+		Hint:             "",
+	}
+
+	return Prop
+}
+
+// Translit to uppercase english, replace spaces by _
+func translit(input string) string {
+	translit := unidecode.Unidecode(input)
+	translit = strings.ReplaceAll(translit, " ", "_")
+	translit = strings.ToUpper(translit)
+
+	return translit
 }
