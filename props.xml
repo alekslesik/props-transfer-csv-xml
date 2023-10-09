@@ -1,0 +1,25 @@
+<prop>
+    <old_id>88</old_id>
+    <name><![CDATA[Артикул]]></name>
+    <active>Y</active>
+    <sort>700</sort>
+    <code>ARTICLE</code>
+    <default_value></default_value>
+    <property_type>S</property_type>
+    <row_count>1</row_count>
+    <col_count>30</col_count>
+    <list_type>L</list_type>
+    <multiple>N</multiple>
+    <xml_id><![CDATA[35]]></xml_id>
+    <file_type></file_type>
+    <multiple_cnt>5</multiple_cnt>
+    <link_iblock_id>0</link_iblock_id>
+    <with_description>N</with_description>
+    <searchable>N</searchable>
+    <filtrable>N</filtrable>
+    <is_required>N</is_required>
+    <version>1</version>
+    <user_type></user_type>
+    <user_type_settings><![CDATA[a:0:{}]]></user_type_settings>
+    <hint></hint>
+</prop>
