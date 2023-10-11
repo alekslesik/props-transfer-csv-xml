@@ -106,13 +106,13 @@ func translit(input string) string {
 	translit = strings.ReplaceAll(translit, " ", "_")
 	translit = strings.ToUpper(translit)
 
-	// Удаление всех небуквенных символов
+	// Delete all non literal symbols except _
 	reg, err := regexp.Compile("[^a-zA-Z_]+")
 	if err == nil {
 		translit = reg.ReplaceAllString(translit, "")
 	}
 
-	// Обрезка до 30 символов
+	// Cut result up to 30 symbols
 	if len(translit) > 30 {
 		translit = translit[:30]
 	}
