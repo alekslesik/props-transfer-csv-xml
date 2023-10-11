@@ -12,10 +12,15 @@ import (
 	"github.com/mozillazg/go-unidecode"
 )
 
+var (
+	csvPath = "props.csv"
+	XMLPath = "result.xml"
+	id = 88
+	xmlId = 35
+)
+
 func main() {
 	op := "main()"
-
-	csvPath := "props.csv"
 
 	// get properties from csv
 	csvFile, err := os.OpenFile(csvPath, os.O_RDWR|os.O_CREATE, 0755)
@@ -25,14 +30,13 @@ func main() {
 	}
 	defer csvFile.Close()
 
-	csvProps, err := getCsvArr(csvFile)
+	csvProps, err := getCsvProps(csvFile)
 	if err != nil {
 		fmt.Printf("%s: %s: csv records read error", op, err)
 	}
 
 	AsdIblockProps := new(AsdIblockProps)
-	id := 88
-	xmlId := 35
+
 
 	for _, prop := range csvProps[0] {
 		id = id + 1
@@ -49,7 +53,6 @@ func main() {
 			fmt.Printf("%s: %s: MarshalIndent error", op, err)
 		}
 
-		XMLPath := "result.xml"
 		err = os.WriteFile(XMLPath, output, 0755)
 		if err != nil {
 			fmt.Printf("%s: %s: WriteFile error", op, err)
@@ -58,7 +61,7 @@ func main() {
 }
 
 // Get all records from csv file
-func getCsvArr(file *os.File) ([][]string, error) {
+func getCsvProps(file *os.File) ([][]string, error) {
 	// create new reader
 	reader := csv.NewReader(file)
 	reader.Comma = rune(';')
@@ -70,6 +73,7 @@ func getCsvArr(file *os.File) ([][]string, error) {
 	return records, nil
 }
 
+// New property from XML
 func newXMLProp(id, xmlId, code, name string) Prop {
 	Prop := Prop{
 		OldID:            id,
@@ -100,7 +104,8 @@ func newXMLProp(id, xmlId, code, name string) Prop {
 	return Prop
 }
 
-// Translit to uppercase english, replace spaces by _
+// Translit to uppercase english, replace spaces by _, delete all
+// non literal symbols, cut up to 30 symbols
 func translit(input string) string {
 	translit := unidecode.Unidecode(input)
 	translit = strings.ReplaceAll(translit, " ", "_")
