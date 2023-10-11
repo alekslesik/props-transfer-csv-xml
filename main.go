@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -74,7 +75,7 @@ func newXMLProp(id, xmlId, code, name string) Prop {
 		OldID:            id,
 		Name:             CDATA{name},
 		Active:           "Y",
-		Sort:             "100",
+		Sort:             "2000",
 		Code:             code,
 		DefaultValue:     "",
 		PropertyType:     "S",
@@ -104,6 +105,17 @@ func translit(input string) string {
 	translit := unidecode.Unidecode(input)
 	translit = strings.ReplaceAll(translit, " ", "_")
 	translit = strings.ToUpper(translit)
+
+	// Удаление всех небуквенных символов
+	reg, err := regexp.Compile("[^a-zA-Z_]+")
+	if err == nil {
+		translit = reg.ReplaceAllString(translit, "")
+	}
+
+	// Обрезка до 30 символов
+	if len(translit) > 30 {
+		translit = translit[:30]
+	}
 
 	return translit
 }
